@@ -31,7 +31,7 @@ func main() {
 	e.PUT("/updatepost", UpdatePostCount)
 	initDB()
 	e.Logger.Fatal(e.Start(":8000"))
-	defer db.Close()
+	defer DB.Close()
 }
 func initDB() {
 	var err error
@@ -59,7 +59,7 @@ func LoginUser(c echo.Context) error {
 		log.Fatalf("Failed reading request body %s", err)
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error)
 	}
-	result := db.QueryRow("select password from user where name=$1 or email = $2", creds.Username, creds.Email)
+	result := DB.QueryRow("select password from user where name=$1 or email = $2", creds.Username, creds.Email)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error)
 	}
@@ -88,15 +88,15 @@ func SignUpUser(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error)
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), 8)
-	db.Exec("insert into user (name,email,password) values ($1, $2, $3)", creds.Username, creds.Email, string(hashedPassword))
+	DB.Exec("insert into user (name,email,password) values ($1, $2, $3)", creds.Username, creds.Email, string(hashedPassword))
 	return c.JSON(http.StatusOK, "Successfully Signed In ...")
 }
 
 //UpdatePostCount to update user posts
 func UpdatePostCount(c echo.Context) error {
-	incrementflag, _ := strconv.ParseBool(c.FormValue("postcountincr"))
+	incrementflag, _ := strconv.ParseBool(c.FormValue("IncPostCount"))
 	userID := c.FormValue("userID")
-	result := db.QueryRow("select post_count from user where id=$1", userID)
+	result := DB.QueryRow("select post_count from user where id=$1", userID)
 	var postcount int
 	err := result.Scan(&postcount)
 	if err != nil {
@@ -110,6 +110,6 @@ func UpdatePostCount(c echo.Context) error {
 	} else {
 		postcount--
 	}
-	db.Exec("update user set post_count = $1 where id=$2", postcount, userID)
+	DB.Exec("update user set post_count = $1 where id=$2", postcount, userID)
 	return c.JSON(http.StatusOK, "PostCount Updated Successfully ...")
 }
