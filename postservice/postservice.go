@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq"
 )
 
@@ -19,6 +20,7 @@ const (
 	user     = "postgres"
 	password = "54321"
 	dbname   = "postgres"
+	authkey  = "authkey"
 )
 
 //DB global DB variable .
@@ -40,6 +42,10 @@ type PostModel struct {
 
 func main() {
 	e := echo.New()
+	//Use Bearer Token for API call and pass value of constant authkey as token for Authentication
+	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+		return key == authkey, nil
+	}))
 	e.DELETE("/deletePost", PostDelete)
 	e.POST("/createPost", Create)
 	initDB()
